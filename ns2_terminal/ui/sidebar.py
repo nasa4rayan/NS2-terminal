@@ -1,15 +1,15 @@
 """
 NS2 Terminal – Sidebar
 =======================
-Collapsible quick-actions panel with glassmorphism styling,
-smooth slide animation, and icon-only collapsed mode.
+Glassmorphism sidebar with active neon indicator bar, smooth hover
+animations, and collapsible icon-only mode.
 """
 
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QPushButton, QLabel, QFrame, QSizePolicy,
 )
 from PyQt6.QtCore import (
-    Qt, QPropertyAnimation, QEasingCurve, QSize, pyqtProperty,
+    Qt, QPropertyAnimation, QEasingCurve, QSize, pyqtProperty, QTimer,
 )
 from PyQt6.QtGui import QColor, QFont
 
@@ -24,58 +24,73 @@ class SidebarButton(QPushButton):
         super().__init__(parent)
         self._icon_char = icon_char
         self._label_text = label
+        self._is_active = False
         self.setText(f"  {icon_char}   {label}")
         self.setCursor(Qt.CursorShape.PointingHandCursor)
-        self.setFixedHeight(38)
+        self.setFixedHeight(40)
         self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
+
+    def set_active(self, active: bool):
+        """Mark this button as the active sidebar item."""
+        self._is_active = active
+        self._refresh_style()
 
     def set_collapsed(self, collapsed: bool):
         if collapsed:
             self.setText(self._icon_char)
-            self.setFixedWidth(42)
+            self.setFixedWidth(44)
         else:
             self.setText(f"  {self._icon_char}   {self._label_text}")
             self.setMaximumWidth(16777215)  # Reset max width
 
+    def _refresh_style(self):
+        """Apply active/inactive styling via dynamic property."""
+        self.setProperty("active", self._is_active)
+        self.style().unpolish(self)
+        self.style().polish(self)
+
 
 class Sidebar(QWidget):
-    """Glassmorphism sidebar with quick actions."""
+    """Premium glassmorphism sidebar with quick actions."""
 
     def __init__(self, main_window, parent=None):
         super().__init__(parent)
         self._main_window = main_window
         self._expanded = True
-        self._target_width = 180
-        self._collapsed_width = 50
+        self._target_width = 190
+        self._collapsed_width = 52
 
         self.setFixedWidth(self._target_width)
+        self.setObjectName("NS2Sidebar")
 
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(10, 14, 10, 12)
-        layout.setSpacing(6)
+        layout.setContentsMargins(10, 16, 10, 14)
+        layout.setSpacing(4)
 
         # ── Logo / branding ──
         self.brand_label = QLabel("NS2")
         self.brand_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.brand_label.setFont(QFont("Inter", 14, QFont.Weight.Bold))
+        self.brand_label.setObjectName("sidebarBrand")
         layout.addWidget(self.brand_label)
 
-        layout.addSpacing(12)
+        layout.addSpacing(14)
 
         # ── Separator ──
         sep = QFrame()
         sep.setFrameShape(QFrame.Shape.HLine)
-        sep.setStyleSheet("background: rgba(255, 255, 255, 0.06); max-height: 1px;")
+        sep.setFixedHeight(1)
+        sep.setObjectName("sidebarSep")
         layout.addWidget(sep)
-        layout.addSpacing(8)
+        layout.addSpacing(10)
 
-        # ── Action buttons ──
-        self.btn_new_tab = SidebarButton("⊕", "New Tab")
-        self.btn_split_h = SidebarButton("⬌", "Split H")
-        self.btn_split_v = SidebarButton("⬍", "Split V")
-        self.btn_palette = SidebarButton("⌘", "Commands")
+        # ── Action buttons ── (clean unicode icons, Lucide-inspired)
+        self.btn_new_tab  = SidebarButton("＋", "New Tab")
+        self.btn_split_h  = SidebarButton("⇔", "Split H")
+        self.btn_split_v  = SidebarButton("⇕", "Split V")
+        self.btn_palette  = SidebarButton("⌘", "Commands")
         self.btn_settings = SidebarButton("⚙", "Settings")
-        self.btn_theme = SidebarButton("◐", "Theme")
+        self.btn_theme    = SidebarButton("◑", "Theme")
         self.btn_fullscreen = SidebarButton("⛶", "Fullscreen")
 
         self.buttons = [
@@ -92,7 +107,8 @@ class Sidebar(QWidget):
         # ── Collapse toggle ──
         self.btn_collapse = QPushButton("◀")
         self.btn_collapse.setCursor(Qt.CursorShape.PointingHandCursor)
-        self.btn_collapse.setFixedHeight(32)
+        self.btn_collapse.setFixedHeight(34)
+        self.btn_collapse.setObjectName("collapseBtn")
         self.btn_collapse.clicked.connect(self.toggle_collapse)
         layout.addWidget(self.btn_collapse)
 
@@ -104,51 +120,63 @@ class Sidebar(QWidget):
         theme = THEMES.get(config.theme, THEMES[DEFAULT_THEME])
 
         self.setStyleSheet(f"""
-            Sidebar {{
+            #NS2Sidebar {{
                 background: {theme.sidebar_bg};
                 border-right: 1px solid {theme.border_color};
             }}
-        """)
+            #sidebarSep {{
+                background: {theme.border_color};
+                border: none;
+            }}
+            #sidebarBrand {{
+                color: {theme.primary};
+                letter-spacing: 6px;
+                font-weight: 700;
+            }}
 
-        btn_style = f"""
+            /* ── Sidebar buttons ── */
             QPushButton {{
                 background: transparent;
                 color: {theme.foreground};
                 border: none;
-                border-radius: 6px;
+                border-radius: 8px;
                 font-size: 12px;
                 text-align: left;
-                padding: 0 10px;
+                padding: 0 12px;
                 font-family: 'Inter', 'Segoe UI', sans-serif;
             }}
             QPushButton:hover {{
-                background: rgba(255, 255, 255, 0.06);
-                color: {theme.foreground};
+                background: rgba(255, 255, 255, 0.05);
+                color: {theme.primary};
+                padding-left: 15px;
             }}
             QPushButton:pressed {{
-                background: rgba(255, 255, 255, 0.09);
-            }}
-        """
-        for btn in self.buttons:
-            btn.setStyleSheet(btn_style)
-
-        self.btn_collapse.setStyleSheet(f"""
-            QPushButton {{
-                background: rgba(255, 255, 255, 0.04);
-                color: {theme.foreground};
-                border: none;
-                border-radius: 6px;
-                font-size: 14px;
-            }}
-            QPushButton:hover {{
                 background: rgba(255, 255, 255, 0.08);
-                color: {theme.foreground};
             }}
-        """)
 
-        self.brand_label.setStyleSheet(f"""
-            color: {theme.primary};
-            letter-spacing: 4px;
+            /* Active state: left neon bar */
+            QPushButton[active="true"] {{
+                background: {theme.sidebar_active_bg};
+                color: {theme.primary};
+                border-left: 3px solid {theme.primary};
+                padding-left: 9px;
+                font-weight: 600;
+            }}
+
+            /* ── Collapse button ── */
+            #collapseBtn {{
+                background: rgba(255, 255, 255, 0.03);
+                color: {theme.muted_text};
+                border: none;
+                border-radius: 8px;
+                font-size: 14px;
+                text-align: center;
+                padding: 0;
+            }}
+            #collapseBtn:hover {{
+                background: rgba(255, 255, 255, 0.06);
+                color: {theme.primary};
+            }}
         """)
 
     def toggle_collapse(self):
@@ -162,7 +190,7 @@ class Sidebar(QWidget):
         self._expanded = False
         if config.animations_enabled:
             anim = QPropertyAnimation(self, b"maximumWidth")
-            anim.setDuration(200)
+            anim.setDuration(180)
             anim.setStartValue(self.width())
             anim.setEndValue(self._collapsed_width)
             anim.setEasingCurve(QEasingCurve.Type.OutCubic)
@@ -177,7 +205,7 @@ class Sidebar(QWidget):
         self._expanded = True
         if config.animations_enabled:
             anim = QPropertyAnimation(self, b"maximumWidth")
-            anim.setDuration(200)
+            anim.setDuration(180)
             anim.setStartValue(self.width())
             anim.setEndValue(self._target_width)
             anim.setEasingCurve(QEasingCurve.Type.OutCubic)

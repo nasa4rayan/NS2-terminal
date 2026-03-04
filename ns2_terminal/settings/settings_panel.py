@@ -24,7 +24,7 @@ class SettingsPanel(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle("NS2 Terminal – Settings")
-        self.setFixedSize(480, 560)
+        self.setFixedSize(500, 580)
 
         theme = THEMES.get(config.theme, THEMES[DEFAULT_THEME])
 
@@ -44,7 +44,7 @@ class SettingsPanel(QDialog):
                 font-weight: 600;
                 font-size: 13px;
                 border: 1px solid {theme.border_color};
-                border-radius: 8px;
+                border-radius: 10px;
                 margin-top: 20px;
                 padding-top: 14px;
                 background: {theme.input_bg};
@@ -61,25 +61,25 @@ class SettingsPanel(QDialog):
                 background: {theme.input_bg};
                 color: {theme.primary};
                 border: 1px solid {theme.border_color};
-                padding: 7px 18px;
-                border-radius: 6px;
+                padding: 8px 20px;
+                border-radius: 8px;
                 font-weight: 600;
                 font-size: 12px;
             }}
             QPushButton:hover {{
-                background: rgba(255, 255, 255, 0.08);
+                background: rgba(255, 255, 255, 0.06);
                 border: 1px solid {theme.primary};
             }}
             QPushButton:pressed {{
-                background: rgba(255, 255, 255, 0.12);
+                background: rgba(255, 255, 255, 0.10);
             }}
             QComboBox, QFontComboBox, QSpinBox {{
                 background: {theme.input_bg};
                 color: {theme.foreground};
                 border: 1px solid {theme.border_color};
-                padding: 5px 10px;
-                border-radius: 6px;
-                min-height: 26px;
+                padding: 6px 12px;
+                border-radius: 8px;
+                min-height: 28px;
                 font-size: 12px;
             }}
             QComboBox:hover, QFontComboBox:hover, QSpinBox:hover {{
@@ -97,7 +97,7 @@ class SettingsPanel(QDialog):
             QSlider::groove:horizontal {{
                 border-radius: 2px;
                 height: 4px;
-                background: rgba(255, 255, 255, 0.1);
+                background: rgba(255, 255, 255, 0.08);
             }}
             QSlider::handle:horizontal {{
                 background: {theme.primary};
@@ -121,7 +121,7 @@ class SettingsPanel(QDialog):
             QCheckBox::indicator {{
                 width: 18px;
                 height: 18px;
-                border-radius: 4px;
+                border-radius: 5px;
                 border: 1px solid {theme.border_color};
                 background: {theme.input_bg};
             }}
@@ -135,25 +135,46 @@ class SettingsPanel(QDialog):
             }}
             QTabBar::tab {{
                 background: transparent;
-                color: {theme.foreground};
-                padding: 8px 16px;
+                color: {theme.muted_text};
+                padding: 8px 18px;
                 border: none;
                 font-size: 12px;
                 font-weight: 500;
+                border-radius: 8px;
             }}
             QTabBar::tab:hover {{
-                color: {theme.primary};
+                color: {theme.foreground};
+                background: rgba(255, 255, 255, 0.03);
             }}
             QTabBar::tab:selected {{
                 color: {theme.primary};
                 font-weight: 600;
                 border-bottom: 2px solid {theme.primary};
             }}
+
+            /* ── Scrollbar inside settings ── */
+            QScrollBar:vertical {{
+                background: transparent;
+                width: 6px;
+                border: none;
+            }}
+            QScrollBar::handle:vertical {{
+                background: {theme.scrollbar_color};
+                border-radius: 3px;
+                min-height: 20px;
+            }}
+            QScrollBar::handle:vertical:hover {{
+                background: {theme.primary};
+            }}
+            QScrollBar::add-line:vertical,
+            QScrollBar::sub-line:vertical {{
+                height: 0;
+            }}
         """)
 
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(20, 16, 20, 16)
-        layout.setSpacing(12)
+        layout.setContentsMargins(22, 18, 22, 18)
+        layout.setSpacing(14)
 
         # ── Title ──
         title = QLabel("Settings")
@@ -186,8 +207,8 @@ class SettingsPanel(QDialog):
     def _build_appearance_tab(self) -> QWidget:
         w = QWidget()
         form = QFormLayout(w)
-        form.setContentsMargins(10, 16, 10, 10)
-        form.setSpacing(14)
+        form.setContentsMargins(10, 18, 10, 10)
+        form.setSpacing(16)
 
         # Theme
         self.theme_combo = QComboBox()
@@ -278,8 +299,8 @@ class SettingsPanel(QDialog):
     def _build_font_tab(self) -> QWidget:
         w = QWidget()
         form = QFormLayout(w)
-        form.setContentsMargins(10, 16, 10, 10)
-        form.setSpacing(14)
+        form.setContentsMargins(10, 18, 10, 10)
+        form.setSpacing(16)
 
         self.font_combo = QFontComboBox()
         self.font_combo.setCurrentText(config.font_family)
@@ -303,8 +324,8 @@ class SettingsPanel(QDialog):
     def _build_behavior_tab(self) -> QWidget:
         w = QWidget()
         form = QFormLayout(w)
-        form.setContentsMargins(10, 16, 10, 10)
-        form.setSpacing(14)
+        form.setContentsMargins(10, 18, 10, 10)
+        form.setSpacing(16)
 
         # Cursor shape
         self.cursor_combo = QComboBox()
@@ -346,7 +367,9 @@ class SettingsPanel(QDialog):
     def _build_about_tab(self) -> QWidget:
         w = QWidget()
         layout = QVBoxLayout(w)
-        layout.setContentsMargins(10, 16, 10, 10)
+        layout.setContentsMargins(10, 18, 10, 10)
+
+        theme = THEMES.get(config.theme, THEMES[DEFAULT_THEME])
 
         about = QLabel(
             "<h2>NS2 Terminal</h2>"
@@ -370,7 +393,7 @@ class SettingsPanel(QDialog):
             "</table>"
         )
         about.setWordWrap(True)
-        about.setStyleSheet("font-size: 13px;")
+        about.setStyleSheet(f"font-size: 13px; color: {theme.foreground};")
         layout.addWidget(about)
         layout.addStretch()
 

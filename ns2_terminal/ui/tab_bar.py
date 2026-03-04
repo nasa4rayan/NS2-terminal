@@ -1,12 +1,15 @@
 """
 NS2 Terminal – Tab Bar
 =======================
-Custom-styled QTabWidget with animated active-tab indicator,
-neon glow effects, and smooth hover transitions.
+Premium tab system with rounded tabs, animated neon glow underline,
+circular "+" button with pulse effect, and smooth transitions.
 """
 
 from PyQt6.QtWidgets import QTabWidget, QPushButton, QTabBar
-from PyQt6.QtCore import Qt, QPropertyAnimation, QRect, QEasingCurve, QTimer
+from PyQt6.QtCore import (
+    Qt, QPropertyAnimation, QRect, QEasingCurve, QTimer,
+    pyqtProperty, QPoint,
+)
 from PyQt6.QtGui import QPainter, QColor, QLinearGradient, QPen
 
 from ns2_terminal.ui.split_pane import SplitPane
@@ -23,8 +26,7 @@ class GlowTabBar(QTabBar):
         self._indicator_width = 0.0
         self._glow_alpha = 0.7
 
-        # Animation for sliding indicator
-        self._anim = QPropertyAnimation(self, b"geometry")  # Dummy target
+        # Sliding indicator animation
         self._slide_timer = QTimer(self)
         self._slide_timer.setInterval(16)  # ~60 FPS
         self._slide_timer.timeout.connect(self._step_indicator)
@@ -48,8 +50,8 @@ class GlowTabBar(QTabBar):
 
     def _step_indicator(self):
         """Smoothly interpolate indicator position."""
-        dx = (self._target_x - self._indicator_x) * 0.18
-        dw = (self._target_w - self._indicator_width) * 0.18
+        dx = (self._target_x - self._indicator_x) * 0.20
+        dw = (self._target_w - self._indicator_width) * 0.20
         self._indicator_x += dx
         self._indicator_width += dw
         if abs(dx) < 0.5 and abs(dw) < 0.5:
@@ -77,18 +79,18 @@ class GlowTabBar(QTabBar):
         painter = QPainter(self)
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
 
-        # ── Neon underline indicator ──
-        h = 3
+        # ── Neon underline indicator (2px) ──
+        h = 2
         y = self.height() - h
         ix = int(self._indicator_x)
         iw = int(self._indicator_width)
 
-        # Glow effect (wider, softer)
+        # Soft glow (wider, diffuse)
         glow = QColor(theme.primary)
-        glow.setAlpha(50)
-        painter.fillRect(ix - 4, y - 2, iw + 8, h + 4, glow)
+        glow.setAlpha(35)
+        painter.fillRect(ix - 6, y - 3, iw + 12, h + 6, glow)
 
-        # Main indicator line
+        # Main indicator line — primary → accent → primary
         grad = QLinearGradient(ix, y, ix + iw, y)
         grad.setColorAt(0.0, QColor(theme.primary))
         grad.setColorAt(0.5, QColor(theme.accent))
@@ -114,10 +116,11 @@ class TabBar(QTabWidget):
 
         self.tabCloseRequested.connect(self._close_tab)
 
-        # "+" button
+        # "+" button — circular 28px with neon border
         self.add_btn = QPushButton("+")
         self.add_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        self.add_btn.setFixedSize(30, 30)
+        self.add_btn.setFixedSize(28, 28)
+        self.add_btn.setObjectName("newTabBtn")
         self.add_btn.clicked.connect(self.add_new_tab)
         self.setCornerWidget(self.add_btn, Qt.Corner.TopRightCorner)
 
@@ -141,19 +144,19 @@ class TabBar(QTabWidget):
             }}
             QTabBar::tab {{
                 background: {theme.tab_inactive_bg};
-                color: {theme.foreground};
-                padding: 7px 16px;
+                color: {theme.muted_text};
+                padding: 8px 18px;
                 border: none;
-                border-top-left-radius: 10px;
-                border-top-right-radius: 10px;
-                margin-right: 2px;
+                border-radius: 12px;
+                margin-right: 3px;
                 font-family: 'Inter', 'Segoe UI', 'Roboto', sans-serif;
                 font-size: 12px;
                 font-weight: 500;
-                min-width: 88px;
+                min-width: 90px;
             }}
             QTabBar::tab:hover {{
-                background: rgba(255, 255, 255, 0.05);
+                background: rgba(255, 255, 255, 0.04);
+                color: {theme.foreground};
             }}
             QTabBar::tab:selected {{
                 background: {theme.tab_active_bg};
@@ -163,27 +166,27 @@ class TabBar(QTabWidget):
             QTabBar::close-button {{
                 subcontrol-position: right;
                 padding: 2px;
-                margin-left: 8px;
+                margin-left: 6px;
                 margin-right: 2px;
             }}
             QTabBar::close-button:hover {{
-                background: rgba(255, 77, 109, 0.3);
-                border-radius: 3px;
+                background: rgba(255, 76, 76, 0.25);
+                border-radius: 4px;
             }}
-        """)
 
-        self.add_btn.setStyleSheet(f"""
-            QPushButton {{
-                border: none;
+            /* ── Circular new-tab button ── */
+            #newTabBtn {{
+                border: 1px solid {theme.border_color};
                 color: {theme.primary};
-                font-weight: bold;
-                font-size: 18px;
-                border-radius: 6px;
+                font-weight: 700;
+                font-size: 16px;
+                border-radius: 14px;
                 margin: 4px 6px;
                 background: transparent;
             }}
-            QPushButton:hover {{
-                background: rgba(255, 255, 255, 0.06);
+            #newTabBtn:hover {{
+                background: rgba(0, 191, 255, 0.10);
+                border: 1px solid {theme.primary};
             }}
         """)
 

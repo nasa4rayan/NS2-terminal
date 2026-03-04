@@ -31,6 +31,7 @@ class CommandPalette(QWidget):
         )
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
         self.setFixedSize(500, 380)
+        self.setObjectName("commandPalette")
 
         self._commands = []   # List of (name, callback) tuples
         self._visible = False
@@ -43,21 +44,23 @@ class CommandPalette(QWidget):
         # ── Search input ──
         self.search_input = QLineEdit()
         self.search_input.setPlaceholderText("Type a command…")
+        self.search_input.setObjectName("paletteSearch")
         self.search_input.textChanged.connect(self._filter_commands)
         self.search_input.installEventFilter(self)
         layout.addWidget(self.search_input)
 
         # ── Results list ──
         self.result_list = QListWidget()
+        self.result_list.setObjectName("paletteResults")
         self.result_list.itemActivated.connect(self._execute_selected)
         self.result_list.itemClicked.connect(self._execute_selected)
         layout.addWidget(self.result_list)
 
         # ── Drop shadow ──
         shadow = QGraphicsDropShadowEffect(self)
-        shadow.setBlurRadius(40)
-        shadow.setOffset(0, 8)
-        shadow.setColor(QColor(0, 0, 0, 120))
+        shadow.setBlurRadius(48)
+        shadow.setOffset(0, 10)
+        shadow.setColor(QColor(0, 0, 0, 140))
         self.setGraphicsEffect(shadow)
 
         # Apply theme
@@ -68,30 +71,26 @@ class CommandPalette(QWidget):
         theme = THEMES.get(config.theme, THEMES[DEFAULT_THEME])
 
         self.setStyleSheet(f"""
-            CommandPalette {{
+            #commandPalette {{
                 background: {theme.sidebar_bg};
                 border: 1px solid {theme.border_color};
-                border-radius: 12px;
+                border-radius: 14px;
             }}
-        """)
 
-        self.search_input.setStyleSheet(f"""
-            QLineEdit {{
+            #paletteSearch {{
                 background: {theme.input_bg};
                 color: {theme.foreground};
                 border: 1px solid {theme.border_color};
-                border-radius: 8px;
+                border-radius: 10px;
                 padding: 10px 14px;
                 font-size: 14px;
                 font-family: 'Inter', 'Segoe UI', sans-serif;
             }}
-            QLineEdit:focus {{
+            #paletteSearch:focus {{
                 border: 1px solid {theme.primary};
             }}
-        """)
 
-        self.result_list.setStyleSheet(f"""
-            QListWidget {{
+            #paletteResults {{
                 background: transparent;
                 border: none;
                 color: {theme.foreground};
@@ -99,16 +98,16 @@ class CommandPalette(QWidget):
                 font-family: 'Inter', 'Segoe UI', sans-serif;
                 outline: none;
             }}
-            QListWidget::item {{
-                padding: 8px 12px;
-                border-radius: 6px;
+            #paletteResults::item {{
+                padding: 8px 14px;
+                border-radius: 8px;
                 margin: 1px 0;
             }}
-            QListWidget::item:hover {{
-                background: rgba(255, 255, 255, 0.06);
+            #paletteResults::item:hover {{
+                background: rgba(255, 255, 255, 0.05);
             }}
-            QListWidget::item:selected {{
-                background: rgba({self._qcolor_rgb(theme.primary)}, 0.15);
+            #paletteResults::item:selected {{
+                background: rgba({self._qcolor_rgb(theme.primary)}, 0.14);
                 color: {theme.primary};
             }}
         """)

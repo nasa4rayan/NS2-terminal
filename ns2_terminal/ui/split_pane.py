@@ -24,10 +24,10 @@ class SplitPane(QSplitter):
         # Splitter handle styling
         self.setStyleSheet("""
             QSplitter::handle {
-                background: rgba(255, 255, 255, 0.06);
+                background: rgba(176, 196, 222, 0.06);
             }
             QSplitter::handle:hover {
-                background: rgba(0, 195, 255, 0.3);
+                background: rgba(0, 191, 255, 0.25);
             }
         """)
 

@@ -30,9 +30,9 @@ class TerminalWidget(QWidget):
         self.setAcceptDrops(True)
         self.setMouseTracking(True)
 
-        # Rendering margins
-        self.MARGIN_X = 14
-        self.MARGIN_Y = 10
+        # Rendering margins — premium spacing
+        self.MARGIN_X = 16
+        self.MARGIN_Y = 12
 
         # Theme
         self.theme = THEMES.get(config.theme, THEMES[DEFAULT_THEME])

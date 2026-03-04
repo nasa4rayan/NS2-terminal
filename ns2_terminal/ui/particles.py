@@ -22,20 +22,20 @@ class Particle:
     def __init__(self, width: int, height: int):
         self.x = random.uniform(0, width)
         self.y = random.uniform(0, height)
-        self.vx = random.uniform(-0.3, 0.3)
-        self.vy = random.uniform(-0.15, -0.05)
-        self.radius = random.uniform(1.0, 2.5)
-        self.alpha = random.uniform(0.1, 0.4)
-        self.alpha_dir = random.choice([-1, 1]) * random.uniform(0.003, 0.008)
+        self.vx = random.uniform(-0.20, 0.20)
+        self.vy = random.uniform(-0.10, -0.03)
+        self.radius = random.uniform(1.0, 2.2)
+        self.alpha = random.uniform(0.06, 0.25)
+        self.alpha_dir = random.choice([-1, 1]) * random.uniform(0.002, 0.006)
 
     def update(self, width: int, height: int):
         self.x += self.vx
         self.y += self.vy
         self.alpha += self.alpha_dir
 
-        if self.alpha <= 0.05:
+        if self.alpha <= 0.04:
             self.alpha_dir = abs(self.alpha_dir)
-        elif self.alpha >= 0.45:
+        elif self.alpha >= 0.30:
             self.alpha_dir = -abs(self.alpha_dir)
 
         # Wrap around edges
@@ -55,7 +55,7 @@ class ParticleOverlay(QWidget):
     Place over the main content area.
     """
 
-    BASE_PARTICLES = 30
+    BASE_PARTICLES = 20
     UPDATE_INTERVAL = 33  # ~30 FPS
 
     def __init__(self, parent=None):
