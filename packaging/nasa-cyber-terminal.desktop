@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=NASA Cyber Terminal
+Comment=Modern futuristic terminal emulator
+Exec=python3 /opt/nasa-cyber-terminal/main.py
+Icon=/opt/nasa-cyber-terminal/assets/icon.png
+Terminal=false
+Type=Application
+Categories=System;TerminalEmulator;
+StartupNotify=true
